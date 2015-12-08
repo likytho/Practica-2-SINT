@@ -2,11 +2,15 @@
  * Created by Likytho on 29/11/2015.
  *
  * Problemas con las eñes y con los acentos de los XMLs, tener en cuenta al probar en el laboratorio. Parece que esto funciona en el Tomcat de Ubuntu.
- * Fase 212 -> orden por año de publicación (coñazo)
+ *
+ * CSS y fondo -> relativo + cambiar nombre del archivo CSS.
+ *
+ * Comprobador de ruta de XML (Relativa o absoluta)
  * 
- * CSS y URLs + enlaces a archivos. 
- * 
- * Párrafo de "si no hay datos, no se continua la consulta".
+ * Gestión de errores:
+ * - Por supuesto, cualquier cosa que implique el fichero no esté bien formado.
+ * - La falta de algún elemento obligatorio, o un orden incorrecto de los mismos.
+ * - La falta de algún atributo obligatorio.
  */
 
 import org.w3c.dom.Document;
@@ -25,10 +29,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class Sint153P2 extends HttpServlet {
 
@@ -42,6 +43,7 @@ public class Sint153P2 extends HttpServlet {
     String fase3 = "";
     String autorFase3 = "";
     Map<Integer, String> mapFase3 = new TreeMap<Integer, String>();
+    Map<Integer, ArrayList<String>> mapFase3Consulta1Aux = new TreeMap<Integer, ArrayList<String>>();
 
     String fase4 = "";
     Map<Integer, String> mapFase4 = new TreeMap<Integer, String>();
@@ -58,11 +60,10 @@ public class Sint153P2 extends HttpServlet {
         //Salida será el printer de nuestras webs para las consultas
         ServletOutputStream salida = res.getOutputStream();
         res.setContentType("text/html");
-        
+
         salida.println("<!DOCTYPE html>");
         salida.println("<head>");
         salida.println("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\">");
-        //salida.println("<html lang=\"es-ES\">");
         salida.println("<title>Servicio IML</title>");
         salida.println("<link href=\"http://clave.det.uvigo.es:8080/~sint153/p2/p2.css\" rel=\"stylesheet\" type=\"text/css\" media=\"all\">");
         salida.println("</head>");
@@ -75,10 +76,10 @@ public class Sint153P2 extends HttpServlet {
         if ((req.getParameter("fase") == null) || (req.getParameter("fase").equals("0"))) {
             leerXML("file:///D:/Users/Likytho/Google%20Drive/Teleco%20%28UVigo%29/3%C2%BA%20Grado%20%282015-2016%29/1%C2%BA%20Cuatrimestre/Servicios%20de%20Internet/Pr%C3%A1ctica/Pr%C3%A1ctica%202/P2/sabina.xml");
             fase1(req, res, salida);
-            fase1 = "";
-            fase2 = "";
-            fase3 = "";
-            fase4 = "";
+            fase1 = "";            fase2 = "";            fase3 = "";            fase4 = "";        autorFase3 = "";
+            mapFase2.clear();            mapFase2Consulta1.clear();            mapFase2Consulta1ID.clear();
+            mapFase3.clear();            mapFase3Consulta1Aux.clear();
+            mapFase4.clear();
         } else {
             //Fase 1 -> Escoger tipo de consulta
             if (req.getParameter("fase").equals("1")) {
@@ -99,7 +100,9 @@ public class Sint153P2 extends HttpServlet {
                     fase2Album(req, res, salida);
                 } else {
                     fase2 = req.getParameter("interprete");
-                    fase3Album(req, res, salida);
+                    try {
+                        fase3Album(req, res, salida);
+                    } catch (XPathException e) {}
                 }
             }
 
@@ -107,7 +110,9 @@ public class Sint153P2 extends HttpServlet {
             if (req.getParameter("fase").equals("212")) {
                 if (req.getParameter("album") == null) {
                     fase3 = "";
-                    fase3Album(req, res, salida);
+                    try {
+                        fase3Album(req, res, salida);
+                    } catch (XPathException e) {}
                 } else {
                     fase3 = req.getParameter("album");
                     try {
@@ -266,7 +271,14 @@ public class Sint153P2 extends HttpServlet {
         salida.println("</html>");
     }
 
-    public void fase3Album(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException {
+    public void fase3Album(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException, XPathExpressionException  {
+
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        NodeList listaAlbumes = null;
+        mapFase3Consulta1Aux.clear();
+
+        String anho = "";
+        String album = "";
 
         salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h1>");
         salida.println("<h2>Fase 1: " + fase1 + " || Fase 2: " + fase2 + "</h2>");
@@ -279,8 +291,42 @@ public class Sint153P2 extends HttpServlet {
                 Document docAux = getDoc(j);
 
                 NodeList nodoAlbums = docAux.getElementsByTagName("NombreA");
+                listaAlbumes = (NodeList) xpath.evaluate("/Interprete/Album", docAux, XPathConstants.NODESET);
                 for (int z = 0; z < nodoAlbums.getLength(); z++) {
-                    salida.println("<input type='radio' name='album' value='" + nodoAlbums.item(z).getTextContent() + "' checked> " + nodoAlbums.item(z).getTextContent() + ".<br>");
+
+                    NodeList listaAnhos = listaAlbumes.item(z).getChildNodes();
+
+                    for (int w=0; w<listaAnhos.getLength(); w++){
+
+                        String aux = listaAnhos.item(w).getNodeName();
+
+                        if (aux.equalsIgnoreCase("NombreA")){
+                            album = listaAnhos.item(w).getTextContent();
+                        }
+
+                        if (aux.equalsIgnoreCase("Año")){
+                            anho = listaAnhos.item(w).getTextContent();
+                        }
+
+                        if((!anho.equalsIgnoreCase("")) && (!album.equalsIgnoreCase(""))){
+
+                            if(!mapFase3Consulta1Aux.containsKey(Integer.parseInt(anho))){
+
+                                ArrayList <String> arrayTemp = new ArrayList<String>();
+                                arrayTemp.add(album);
+
+                                mapFase3Consulta1Aux.put((Integer.parseInt(anho)), arrayTemp);
+                            } else {
+
+                                ArrayList <String> arrayTemp = mapFase3Consulta1Aux.get(Integer.parseInt(anho));
+                                arrayTemp.add(album);
+
+                                mapFase3Consulta1Aux.put(Integer.parseInt(anho), arrayTemp);
+                            }
+                            album = "";
+                            anho = "";
+                        }
+                    }
                 }
             }
         } else {
@@ -290,11 +336,58 @@ public class Sint153P2 extends HttpServlet {
 
                 if (docAux.getElementsByTagName("Id").item(0).getTextContent().equals(fase2)) {
                     NodeList nodoAlbums = docAux.getElementsByTagName("NombreA");
+                    listaAlbumes = (NodeList) xpath.evaluate("/Interprete/Album", docAux, XPathConstants.NODESET);
                     for (int z = 0; z < nodoAlbums.getLength(); z++) {
-                        salida.println("<input type='radio' name='album' value='" + nodoAlbums.item(z).getTextContent() + "' checked> " + nodoAlbums.item(z).getTextContent() + ".<br>");
+
+                        NodeList listaAnhos = listaAlbumes.item(z).getChildNodes();
+
+                        for (int w=0; w<listaAnhos.getLength(); w++){
+
+                            String aux = listaAnhos.item(w).getNodeName();
+
+                            if (aux.equalsIgnoreCase("NombreA")){
+                                album = listaAnhos.item(w).getTextContent();
+                            }
+
+                            if (aux.equalsIgnoreCase("Año")){
+                                anho = listaAnhos.item(w).getTextContent();
+                            }
+
+                            if((!anho.equalsIgnoreCase("")) && (!album.equalsIgnoreCase(""))){
+
+                                if(!mapFase3Consulta1Aux.containsKey(Integer.parseInt(anho))){
+
+                                    ArrayList <String> arrayTemp = new ArrayList<String>();
+                                    arrayTemp.add(album);
+
+                                    mapFase3Consulta1Aux.put((Integer.parseInt(anho)), arrayTemp);
+                                } else {
+
+                                    ArrayList <String> arrayTemp = mapFase3Consulta1Aux.get(Integer.parseInt(anho));
+                                    arrayTemp.add(album);
+
+                                    mapFase3Consulta1Aux.put(Integer.parseInt(anho), arrayTemp);
+                                }
+
+                                album = "";
+                                anho = "";
+                            }
+                        }
                     }
-                    break;
                 }
+                break;
+            }
+        }
+
+        Iterator iterador = mapFase3Consulta1Aux.keySet().iterator();
+        while(iterador.hasNext()){
+
+            Integer key = (Integer) iterador.next();
+            ArrayList <String> arrayAux = mapFase3Consulta1Aux.get(key);
+
+
+            for (int h=0; h<arrayAux.size(); h++){
+                salida.println("<input type='radio' name='album' value='" + arrayAux.get(h) + "' checked> " + arrayAux.get(h) + " ( " + key + " ).<br>");
             }
         }
 
@@ -313,7 +406,7 @@ public class Sint153P2 extends HttpServlet {
 
         XPath xpath = XPathFactory.newInstance().newXPath();
         String autor = "";
-        
+
         salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h1>");
         salida.println("<h2>Fase 1: " + fase1 + " || Fase 2: " + fase2 + "</h2>");
         salida.println("<h2>Por favor, seleccione un álbum:</h2>");
@@ -322,7 +415,7 @@ public class Sint153P2 extends HttpServlet {
         if(fase2.equalsIgnoreCase("Todos")){
 
             for (int i=0; i<listaDocuments.size(); i++){
-                
+
                 Document docAux = listaDocuments.get(i);
                 NodeList nodoAlbums = docAux.getElementsByTagName("NombreA");
                 autor = "";
@@ -333,16 +426,21 @@ public class Sint153P2 extends HttpServlet {
                     autor = docAux.getElementsByTagName("NombreG").item(0).getTextContent();
                 }
 
+                salida.println("<b>Autor: "+ autor + "</b><br>");
+
                 for (int j=0; j<nodoAlbums.getLength(); j++){
                     mapFase3.put(mapFase3.size()+1, nodoAlbums.item(j).getTextContent());
-                    salida.println("<input type='radio' name='album2' value='" + nodoAlbums.item(j).getTextContent() + "#" + docAux.getElementsByTagName("Id").item(0).getTextContent() +"' checked> " + nodoAlbums.item(j).getTextContent() + " (Autor: " + autor +").<br>");
+                    salida.println("<input type='radio' name='album2' value='" + nodoAlbums.item(j).getTextContent() + "#" + docAux.getElementsByTagName("Id").item(0).getTextContent() +"' checked> " + nodoAlbums.item(j).getTextContent() + ".<br>");
                 }
+
+                salida.println("<br>");
             }
         } else {
 
             for (int i=0; i<listaDocuments.size(); i++) {
 
                 Document docAux = listaDocuments.get(i);
+
                 NodeList listaAlbums = (NodeList) xpath.evaluate("/Interprete/Album[Año='" + fase2 + "']", docAux, XPathConstants.NODESET);
 
                 autor = "";
@@ -352,6 +450,8 @@ public class Sint153P2 extends HttpServlet {
                 } else {
                     autor = docAux.getElementsByTagName("NombreG").item(0).getTextContent();
                 }
+
+                salida.println("<b>Autor: "+ autor + "</b><br>");
 
                 for (int j = 0; j < listaAlbums.getLength(); j++) {
 
@@ -364,14 +464,15 @@ public class Sint153P2 extends HttpServlet {
                         if (Album.equals("NombreA")){
                             nombreAlbum = nodoAlbumHijos.item(k).getTextContent().trim().replaceAll("\n","");
                             mapFase3.put(mapFase3.size()+1, nombreAlbum);
-                            salida.println("<input type='radio' name='album2' value='" + nombreAlbum + "#" + docAux.getElementsByTagName("Id").item(0).getTextContent() + "' checked> " + nombreAlbum + " (Autor: " + autor +").<br>");
+                            salida.println("<input type='radio' name='album2' value='" + nombreAlbum + "#" + docAux.getElementsByTagName("Id").item(0).getTextContent() + "' checked> " + nombreAlbum + ".<br>");
                         }
                     }
                 }
+                salida.println("<br>");
             }
         }
 
-        salida.println("<input type='radio' name='album2' value='Todos' checked> Todos.<br>");
+        salida.println("<input type='radio' name='album2' value='Todos#Todos' checked> Todos.<br>");
         salida.println("<input type='submit' value='Enviar'>");
         salida.println("<input type='hidden' name='fase' value='222'>");
         salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
@@ -402,11 +503,8 @@ public class Sint153P2 extends HttpServlet {
                 } else {
 
                     String IDAux = docAux.getElementsByTagName("Id").item(0).getTextContent();
-                    System.out.println(IDAux);
-                    System.out.println(autorFase3);
 
                     if (IDAux.equalsIgnoreCase(autorFase3)){
-                        System.out.println("Hola!");
                         listaCancionesEstilo = (NodeList) xpath.evaluate("/Interprete/Album[NombreA='"+fase3+"']/Cancion/@estilo", docAux, XPathConstants.NODESET); //
                     }
                 }
@@ -417,11 +515,8 @@ public class Sint153P2 extends HttpServlet {
                 } else {
 
                     String IDAux = docAux.getElementsByTagName("Id").item(0).getTextContent();
-                    System.out.println(IDAux);
-                    System.out.println(autorFase3);
 
                     if (IDAux.equalsIgnoreCase(autorFase3)){
-                        //System.out.println("Hola!");
                         listaCancionesEstilo = (NodeList) xpath.evaluate("/Interprete/Album[NombreA='"+fase3+"' and Año='"+fase2+"']/Cancion/@estilo", docAux, XPathConstants.NODESET);
                     }
                 }
@@ -506,7 +601,7 @@ public class Sint153P2 extends HttpServlet {
                 }
             }
         }
-        
+
         salida.println("</ul>");
         salida.println("</h4>");
         salida.println("<input type='hidden' name='fase' value='41'>");
@@ -523,7 +618,6 @@ public class Sint153P2 extends HttpServlet {
         XPath xpath = XPathFactory.newInstance().newXPath();
         int totalCanciones = 0;
 
-        //salida.println("<body>");
         salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira) (FINAL ESTILO).</h1>");
         salida.println("<form method=GET action='?fase=42'>");
         salida.println("<h3>Su selección ha sido:</h3>");
@@ -546,8 +640,6 @@ public class Sint153P2 extends HttpServlet {
                 } else {
 
                     String IDAux = docAux.getElementsByTagName("Id").item(0).getTextContent();
-                    System.out.println(IDAux);
-                    System.out.println(autorFase3);
 
                     if (IDAux.equalsIgnoreCase(autorFase3)){
                         if(fase4.equalsIgnoreCase("Todos")){
@@ -567,8 +659,6 @@ public class Sint153P2 extends HttpServlet {
                 } else {
 
                     String IDAux = docAux.getElementsByTagName("Id").item(0).getTextContent();
-                    System.out.println(IDAux);
-                    System.out.println(autorFase3);
 
                     if (IDAux.equalsIgnoreCase(autorFase3)){
                         if(fase4.equalsIgnoreCase("Todos")){
@@ -673,7 +763,6 @@ public class Sint153P2 extends HttpServlet {
 
         if (XML != null) {
             if (!listadoXMLs.contains(XML)) {
-                //System.out.println("Me ejecuto! "+ XML +  " " + doc);
                 listadoXMLs.add(XML);
                 if (doc != null) listaDocuments.add(doc);
             }
@@ -713,4 +802,5 @@ public class Sint153P2 extends HttpServlet {
             }
         }
     }
+
 }
