@@ -1,18 +1,3 @@
-/**
- * Created by Likytho on 29/11/2015.
- *
- * Problemas con las eñes y con los acentos de los XMLs, tener en cuenta al probar en el laboratorio. Parece que esto funciona en el Tomcat de Ubuntu.
- *
- * CSS y fondo -> relativo + cambiar nombre del archivo CSS.
- *
- * Comprobador de ruta de XML (Relativa o absoluta)
- * 
- * Gestión de errores:
- * - Por supuesto, cualquier cosa que implique el fichero no esté bien formado.
- * - La falta de algún elemento obligatorio, o un orden incorrecto de los mismos.
- * - La falta de algún atributo obligatorio.
- */
-
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
@@ -30,12 +15,17 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
 import java.io.IOException;
 import java.util.*;
+import java.net.*;
 
 public class Sint153P2 extends HttpServlet {
+
+    public final String URLInicial = "http://clave.det.uvigo.es:8080/~sint153/p2/";
+    ArrayList<String> listaErrores = new ArrayList<>();
 
     String fase1 = "";
 
     String fase2 = "";
+    String fase2Autor = "";
     Map<Integer, String> mapFase2 = new TreeMap<Integer, String>();
     Map<String, String> mapFase2Consulta1 = new TreeMap<String, String>();
     Map<String, String> mapFase2Consulta1ID = new TreeMap<String, String>();
@@ -55,7 +45,21 @@ public class Sint153P2 extends HttpServlet {
     DocumentBuilder db = null;
     Document doc = null;
 
-    public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    //MÉTODO DE INICIALIZACIÓN
+    public void init(ServletOutputStream salida) throws ServletException, IOException {
+        listadoXMLs.add("http://clave.det.uvigo.es:8080/~sint153/p2/springsteen.xml");
+
+        for (int w = 0; w < listadoXMLs.size(); w++){
+            leerXML(listadoXMLs.get(w));
+        }
+    }
+
+    public void doGet (HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        doPost(req, res);
+    }
+
+    //MÉTODO PRINCIPAL
+    public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
         //Salida será el printer de nuestras webs para las consultas
         ServletOutputStream salida = res.getOutputStream();
@@ -63,23 +67,51 @@ public class Sint153P2 extends HttpServlet {
 
         salida.println("<!DOCTYPE html>");
         salida.println("<head>");
-        salida.println("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\">");
+        salida.println("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-15\">");
         salida.println("<title>Servicio IML</title>");
-        salida.println("<link href=\"http://clave.det.uvigo.es:8080/~sint153/p2/p2.css\" rel=\"stylesheet\" type=\"text/css\" media=\"all\">");
+        salida.println("<link href=\"p2/iml.css\" rel=\"stylesheet\" type=\"text/css\" media=\"all\">");
         salida.println("</head>");
-        salida.println("<body background=\"http://clave.det.uvigo.es:8080/~sint153/p1/images/notas.jpg\">");
+        salida.println("<body background=\"p2/notas.jpg\">");
         salida.println("<div id=\"wrapper\">");
         salida.println("<div id=\"container\">");
 
 
         //Todo este tocho está dedicado a las fases
         if ((req.getParameter("fase") == null) || (req.getParameter("fase").equals("0"))) {
-            leerXML("file:///D:/Users/Likytho/Google%20Drive/Teleco%20%28UVigo%29/3%C2%BA%20Grado%20%282015-2016%29/1%C2%BA%20Cuatrimestre/Servicios%20de%20Internet/Pr%C3%A1ctica/Pr%C3%A1ctica%202/P2/sabina.xml");
-            fase1(req, res, salida);
-            fase1 = "";            fase2 = "";            fase3 = "";            fase4 = "";        autorFase3 = "";
+
+            init(salida);
+
+            fase1 = "";            fase2 = "";  fase2Autor = "";           fase3 = "";            fase4 = "";        autorFase3 = "";
             mapFase2.clear();            mapFase2Consulta1.clear();            mapFase2Consulta1ID.clear();
             mapFase3.clear();            mapFase3Consulta1Aux.clear();
             mapFase4.clear();
+
+            salida.println("<h1>SERVICIO DE CONSULTA DE INFORMACIÓN MUSICAL</h1>");
+            salida.println("<h2>Por favor, realice una selección:</h2>");
+            salida.println("<form method=GET action='?fase=1'>");
+            salida.println("<input type='radio' name='consulta' value='1' checked> Lista de canciones de un álbum.<br>");
+            salida.println("<input type='radio' name='consulta' value='2'> Número de canciones de un estilo.<br><br>");
+            salida.println("<input type='submit' value='Enviar'>");
+            salida.println("<input type='hidden' name='fase' value='1'>");
+            salida.println("</form>");
+            salida.println("<h5>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h5>");
+            salida.println("</div></div>");
+
+            if(!listaErrores.isEmpty()){
+                salida.println("<div id=\"wrapper\">");
+                salida.println("<div id=\"container\">");
+                salida.println("<h3>Notificaciones:</h3>");
+
+                for(int u=0; u<listaErrores.size(); u++){
+                    salida.println("<font color=\"red\"> " + listaErrores.get(u) + "</font>");
+                }
+
+                salida.println("</div></div>");
+            }
+
+            salida.println("</body>");
+            salida.println("</html>");
+
         } else {
             //Fase 1 -> Escoger tipo de consulta
             if (req.getParameter("fase").equals("1")) {
@@ -99,10 +131,11 @@ public class Sint153P2 extends HttpServlet {
                     fase2 = "";
                     fase2Album(req, res, salida);
                 } else {
-                    fase2 = req.getParameter("interprete");
-                    try {
-                        fase3Album(req, res, salida);
-                    } catch (XPathException e) {}
+                    String fase2Aux = req.getParameter("interprete");
+                    String [] fase2AuxAux = fase2Aux.split("#");
+                    fase2 = fase2AuxAux[0];
+                    fase2Autor = fase2AuxAux[1];
+                    fase3Album(req, res, salida);
                 }
             }
 
@@ -110,14 +143,11 @@ public class Sint153P2 extends HttpServlet {
             if (req.getParameter("fase").equals("212")) {
                 if (req.getParameter("album") == null) {
                     fase3 = "";
-                    try {
-                        fase3Album(req, res, salida);
-                    } catch (XPathException e) {}
+                    fase3Album(req, res, salida);
+
                 } else {
                     fase3 = req.getParameter("album");
-                    try {
-                        faseFinalAlbum(req, res, salida);
-                    } catch (XPathException e) {}
+                    faseFinalAlbum(req, res, salida);
                 }
             }
 
@@ -170,31 +200,278 @@ public class Sint153P2 extends HttpServlet {
         }
     }
 
-    public void fase1(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException {
 
-        salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h1>");
-        salida.println("<h2>Por favor, realice una selección:</h2>");
-        salida.println("<form method=GET action='?fase=1'>");
-        salida.println("<input type='radio' name='consulta' value='1' checked> Lista de canciones de un álbum.<br>");
-        salida.println("<input type='radio' name='consulta' value='2'> Número de canciones de un estilo.<br><br>");
-        salida.println("<input type='submit' value='Enviar'>");
-        salida.println("<input type='hidden' name='fase' value='1'>");
+    //PRIMERA CONSULTA
+    public void fase2Album(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException {
+
+        salida.println("<h1>SERVICIO DE CONSULTA DE INFORMACIÓN MUSICAL</h1>");
+        salida.println("<h2>Fase 1: " + fase1 + "</h2>");
+        salida.println("<h2>Por favor, seleccione un intérprete:</h2>");
+        salida.println("<form method=GET action='?fase=211'>");
+
+        consultaFase2Album();
+
+        if(!mapFase2Consulta1.isEmpty()){
+
+            Iterator iterador = mapFase2Consulta1.keySet().iterator();
+            while(iterador.hasNext()){
+
+                String key = (String) iterador.next();
+                String Nombre = mapFase2Consulta1.get(key);
+                String ID = mapFase2Consulta1ID.get(Nombre);
+
+                salida.println("<input type='radio' name='interprete' value='" + ID + "#" + Nombre + "' checked> " + Nombre + ".<br>");
+            }
+
+            salida.println("<input type='radio' name='interprete' value='Todos#Todos' checked> Todos.<br>");
+            salida.println("<input type='submit' value='Enviar'><br>");
+            salida.println("<input type='hidden' name='fase' value='211'>");
+
+        } else {
+            salida.println("<h2>No hay opciones disponibles, la consulta no puede continuar.</h2>");
+        }
+
+        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
+        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=0'>");
         salida.println("</form>");
+        salida.println("<h5>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h5>");
         salida.println("</div></div>");
         salida.println("</body>");
         salida.println("</html>");
     }
 
-    public void fase2Album(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException {
+    public void fase3Album(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException {
 
+        salida.println("<h1>SERVICIO DE CONSULTA DE INFORMACIÓN MUSICAL</h1>");
+        salida.println("<h2>Fase 1: " + fase1 + " || Fase 2: " + fase2 + "</h2>");
+        salida.println("<h2>Por favor, seleccione un álbum:</h2>");
+        salida.println("<form method=GET action='?fase=212'>");
+
+        try{
+            consultaFase3Album();
+        } catch (XPathException e){}
+
+        if(!mapFase3Consulta1Aux.isEmpty()){
+
+            Iterator iterador = mapFase3Consulta1Aux.keySet().iterator();
+            while(iterador.hasNext()){
+
+                Integer key = (Integer) iterador.next();
+                ArrayList <String> arrayAux = mapFase3Consulta1Aux.get(key);
+
+
+                for (int h=0; h<arrayAux.size(); h++){
+                    salida.println("<input type='radio' name='album' value='" + arrayAux.get(h) + "' checked> " + arrayAux.get(h) + " ( " + key + " ).<br>");
+                }
+            }
+
+            salida.println("<input type='radio' name='album' value='Todos' checked> Todos.<br>");
+            salida.println("<input type='submit' value='Enviar'> <br>");
+
+        } else {
+            salida.println("<h2>No hay opciones disponibles, la consulta no puede continuar.</h2>");
+        }
+
+        salida.println("<input type='hidden' name='fase' value='212'>");
+        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
+        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=211'>");
+        salida.println("</form>");
+        salida.println("<h5>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h5>");
+        salida.println("</div></div>");
+        salida.println("</body>");
+        salida.println("</html>");
+    }
+
+    public void faseFinalAlbum(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException {
+
+        ArrayList<String> listaCanciones = null;
+
+        salida.println("<h1>SERVICIO DE CONSULTA DE INFORMACIÓN MUSICAL</h1>");
+        salida.println("<form method=GET action='?fase=41'>");
+        salida.println("<h3>Su selección ha sido:</h3>");
+        salida.println("<h4>Fase 1: " + fase1 + " || Fase 2: " + fase2 + " || Fase 3: " + fase3);
+        salida.println("<h3>El resultado de su consulta es el siguiente:</h3>");
+        salida.println("<h4>");
+        salida.println("<ul>");
+
+        try{
+            listaCanciones = consultaFaseFinalAlbum();
+        } catch (XPathException e) {}
+
+        if(!listaCanciones.isEmpty()){
+
+            for (int a=0; a<listaCanciones.size(); a++){
+                salida.println("<li> " + listaCanciones.get(a) + "<br>");
+            }
+
+        } else {
+            salida.println("<h2>No hay canciones que mostrar.</h2>");
+        }
+
+        salida.println("</ul>");
+        salida.println("</h4>");
+        salida.println("<input type='hidden' name='fase' value='41'>");
+        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
+        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=212'>");
+        salida.println("</form>");
+        salida.println("<h5>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h5>");
+        salida.println("</div></div>");
+        salida.println("</body>");
+        salida.println("</html>");
+    }
+
+
+    //SEGUNDA CONSULTA
+    public void fase2Estilo(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException {
+
+        salida.println("<h1>SERVICIO DE CONSULTA DE INFORMACIÓN MUSICAL</h1>");
+        salida.println("<h2>Fase 1: " + fase1 + "</h2>");
+        salida.println("<h2>Por favor, seleccione un año:</h2>");
+        salida.println("<form method=GET action='?fase=221'>");
+
+        consultaFase2Estilo();
+
+        if(!mapFase2.isEmpty()){
+            Iterator iterator = mapFase2.keySet().iterator();
+            while (iterator.hasNext()) {
+                Integer key = (Integer) iterator.next();
+                salida.println("<input type='radio' name='anho'  value='" + mapFase2.get(key) + "' checked> " + mapFase2.get(key) + ".<br>");
+            }
+
+            salida.println("<input type='radio' name='anho' value='Todos' checked> Todos.<br>");
+            salida.println("<input type='submit' value='Enviar'> <br>");
+
+        } else {
+            salida.println("<h2>No hay opciones disponibles, la consulta no puede continuar.</h2>");
+        }
+
+        salida.println("<input type='hidden' name='fase' value='221'>");
+        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
+        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=0'>");
+        salida.println("</form>");
+        salida.println("<h5>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h5>");
+        salida.println("</div></div>");
+        salida.println("</body>");
+        salida.println("</html>");
+    }
+
+    public void fase3Estilo(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException, XPathExpressionException {
+
+        TreeMap<String, ArrayList<String>> mapAux = null;
+
+        salida.println("<h1>SERVICIO DE CONSULTA DE INFORMACIÓN MUSICAL</h1>");
+        salida.println("<h2>Fase 1: " + fase1 + " || Fase 2: " + fase2 + "</h2>");
+        salida.println("<h2>Por favor, seleccione un álbum:</h2>");
+        salida.println("<form method=GET action='?fase=222'>");
+
+        try {
+            mapAux = consultaFase3Estilo();
+        } catch (XPathException e) {}
+
+        if(!mapAux.isEmpty()){
+
+            Iterator iterador = mapAux.keySet().iterator();
+            while(iterador.hasNext()){
+
+                String key = (String) iterador.next();
+                ArrayList<String> arrayAux = mapAux.get(key);
+
+                salida.println("<b>Autor: </b>" + key + "<br>");
+
+                for (int a=0; a<arrayAux.size(); a++){
+                    String albumAux = arrayAux.get(a);
+
+                    String [] splitted = albumAux.split("#");
+
+                    salida.println("<input type='radio' name='album2' value='"+ albumAux +"' checked> " + splitted[0]  + ".<br>");
+                }
+                salida.println("<br>");
+            }
+            salida.println("<input type='radio' name='album2' value='Todos#Todos' checked> Todos.<br>");
+            salida.println("<input type='submit' value='Enviar'> <br>");
+        } else {
+            salida.println("<h2>No hay opciones disponibles, la consulta no puede continuar.</h2>");
+        }
+
+        salida.println("<input type='hidden' name='fase' value='222'>");
+        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
+        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=221'>");
+        salida.println("</form>");
+        salida.println("<h5>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h5>");
+        salida.println("</div></div>");
+        salida.println("</body>");
+        salida.println("</html>");
+    }
+
+    public void fase4Estilo(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException, XPathExpressionException {
+
+        salida.println("<h1>SERVICIO DE CONSULTA DE INFORMACIÓN MUSICAL</h1>");
+        salida.println("<h2>Fase 1: " + fase1 + " || Fase 2: " + fase2 + " || Fase 3: " + fase3 + "</h2>");
+        salida.println("<h2>Por favor, seleccione un estilo:</h2>");
+        salida.println("<form method=GET action='?fase=223'>");
+
+        try {
+            consultaFase4Estilo();
+        } catch (XPathException e) {}
+
+        if(!mapFase4.isEmpty()){
+            Iterator iterador = mapFase4.keySet().iterator();
+            while (iterador.hasNext()){
+                Integer key = (Integer) iterador.next();
+                String estilo = mapFase4.get(key);
+
+                salida.println("<input type='radio' name='estilo' value='"+estilo+"' checked> "+estilo+".<br>");
+            }
+
+            salida.println("<input type='radio' name='estilo' value='Todos' checked> Todos.<br>");
+            salida.println("<input type='submit' value='Enviar'> <br>");
+        } else {
+            salida.println("<h2>No hay opciones disponibles, la consulta no puede continuar.</h2>");
+        }
+
+        salida.println("<input type='hidden' name='fase' value='223'>");
+        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
+        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=222'>");
+        salida.println("</form>");
+        salida.println("<h5>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h5>");
+        salida.println("</div></div>");
+        salida.println("</body>");
+        salida.println("</html>");
+    }
+
+    public void faseFinalEstilo(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException, XPathExpressionException {
+
+        int totalCanciones = 0;
+
+        salida.println("<h1>SERVICIO DE CONSULTA DE INFORMACIÓN MUSICAL</h1>");
+        salida.println("<form method=GET action='?fase=42'>");
+        salida.println("<h3>Su selección ha sido:</h3>");
+        salida.println("<h4>Fase 1: " + fase1 + " || Fase 2: " + fase2 + " || Fase 3: " + fase3 + " || Fase 4: " + fase4 + "</h4>");
+        salida.println("<h3>El resultado de su consulta es el siguiente:</h3>");
+        salida.println("<h4>");
+
+        try{
+            totalCanciones = consultaFaseFinalEstilo();
+        } catch (XPathException e){}
+
+        salida.println("El número de canciones es: " + totalCanciones + ".<br>");
+        salida.println("</h4>");
+        salida.println("<input type='hidden' name='fase' value='42'>");
+        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
+        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=223'>");
+        salida.println("</form>");
+        salida.println("<h5>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h5>");
+        salida.println("</div></div>");
+        salida.println("</body>");
+        salida.println("</html>");
+    }
+
+
+    //MÉTODOS BÚSQUEDA FASES
+    //CONSULTA 1
+    public void consultaFase2Album(){
         mapFase2Consulta1.clear();
         mapFase2Consulta1ID.clear();
-
-        salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h1>");
-        salida.println("<h2>Fase 1: " + fase1 + "</h2>");
-        salida.println("<h2>Por favor, seleccione un intérprete:</h2>");
-        salida.println("<form method=GET action='?fase=211'>");
-
 
         for (int i = 0; i < listaDocuments.size(); i++) {
             Document docAux = getDoc(i);
@@ -210,68 +487,9 @@ public class Sint153P2 extends HttpServlet {
             }
         }
 
-        Iterator iterador = mapFase2Consulta1.keySet().iterator();
-        while(iterador.hasNext()){
-
-            String key = (String) iterador.next();
-            String Nombre = mapFase2Consulta1.get(key);
-            String ID = mapFase2Consulta1ID.get(Nombre);
-
-            salida.println("<input type='radio' name='interprete' value='" + ID + "' checked> " + Nombre + ".<br>");
-        }
-
-        salida.println("<input type='radio' name='interprete' value='Todos' checked> Todos.<br>");
-        salida.println("<input type='submit' value='Enviar'>");
-        salida.println("<input type='hidden' name='fase' value='211'>");
-        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
-        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=0'>");
-        salida.println("</form>");
-        salida.println("</div></div>");
-        salida.println("</body>");
-        salida.println("</html>");
     }
 
-    public void fase2Estilo(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException {
-
-        mapFase2.clear();
-
-        salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h1>");
-        salida.println("<h2>Fase 1: " + fase1 + "</h2>");
-        salida.println("<h2>Por favor, seleccione un año:</h2>");
-        salida.println("<form method=GET action='?fase=221'>");
-
-        NodeList nodoAnhos = null;
-
-        for (int j=0; j<listaDocuments.size(); j++){
-
-            Document docAux = listaDocuments.get(j);
-            nodoAnhos = docAux.getElementsByTagName("Año");
-
-            for (int k=0; k<nodoAnhos.getLength(); k++){
-                if (!mapFase2.containsValue(docAux.getElementsByTagName("Año").item(k).getTextContent())) {
-                    mapFase2.put(Integer.parseInt(docAux.getElementsByTagName("Año").item(k).getTextContent()), docAux.getElementsByTagName("Año").item(k).getTextContent());
-                }
-            }
-        }
-
-        Iterator iterator = mapFase2.keySet().iterator();
-        while (iterator.hasNext()) {
-            Integer key = (Integer) iterator.next();
-            salida.println("<input type='radio' name='anho'  value='" + mapFase2.get(key) + "' checked> " + mapFase2.get(key) + ".<br>");
-        }
-
-        salida.println("<input type='radio' name='anho' value='Todos' checked> Todos.<br>");
-        salida.println("<input type='submit' value='Enviar'>");
-        salida.println("<input type='hidden' name='fase' value='221'>");
-        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
-        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=0'>");
-        salida.println("</form>");
-        salida.println("</div></div>");
-        salida.println("</body>");
-        salida.println("</html>");
-    }
-
-    public void fase3Album(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException, XPathExpressionException  {
+    public void consultaFase3Album() throws XPathException {
 
         XPath xpath = XPathFactory.newInstance().newXPath();
         NodeList listaAlbumes = null;
@@ -280,10 +498,6 @@ public class Sint153P2 extends HttpServlet {
         String anho = "";
         String album = "";
 
-        salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h1>");
-        salida.println("<h2>Fase 1: " + fase1 + " || Fase 2: " + fase2 + "</h2>");
-        salida.println("<h2>Por favor, seleccione un álbum:</h2>");
-        salida.println("<form method=GET action='?fase=212'>");
 
         if (fase2.equalsIgnoreCase("Todos")) {
             for (int j = 0; j < listaDocuments.size(); j++) {
@@ -375,42 +589,85 @@ public class Sint153P2 extends HttpServlet {
                         }
                     }
                 }
-                break;
+                //break;
             }
         }
-
-        Iterator iterador = mapFase3Consulta1Aux.keySet().iterator();
-        while(iterador.hasNext()){
-
-            Integer key = (Integer) iterador.next();
-            ArrayList <String> arrayAux = mapFase3Consulta1Aux.get(key);
-
-
-            for (int h=0; h<arrayAux.size(); h++){
-                salida.println("<input type='radio' name='album' value='" + arrayAux.get(h) + "' checked> " + arrayAux.get(h) + " ( " + key + " ).<br>");
-            }
-        }
-
-        salida.println("<input type='radio' name='album' value='Todos' checked> Todos.<br>");
-        salida.println("<input type='submit' value='Enviar'>");
-        salida.println("<input type='hidden' name='fase' value='212'>");
-        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
-        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=211'>");
-        salida.println("</form>");
-        salida.println("</div></div>");
-        salida.println("</body>");
-        salida.println("</html>");
     }
 
-    public void fase3Estilo(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException, XPathExpressionException {
+    public ArrayList<String> consultaFaseFinalAlbum() throws XPathExpressionException, ServletException {
 
         XPath xpath = XPathFactory.newInstance().newXPath();
-        String autor = "";
+        ArrayList<String> listadoFinalCanciones = new ArrayList<String>();
 
-        salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h1>");
-        salida.println("<h2>Fase 1: " + fase1 + " || Fase 2: " + fase2 + "</h2>");
-        salida.println("<h2>Por favor, seleccione un álbum:</h2>");
-        salida.println("<form method=GET action='?fase=222'>");
+        if (fase2.equalsIgnoreCase("Todos")) {
+
+            Document docAux = null;
+
+            for (int m = 0; m < listaDocuments.size(); m++) {
+                docAux = listaDocuments.get(m);
+
+                if (fase3.equalsIgnoreCase("Todos")) {
+                    NodeList listaCanciones = (NodeList) xpath.evaluate("/Interprete/Album/Cancion", docAux, XPathConstants.NODESET);
+                    listadoFinalCanciones.addAll(obtenerCancionesFaseFinalConsulta1(listaCanciones));
+                } else {
+                    for (int x = 0; x < docAux.getElementsByTagName("Album").getLength(); x++) {
+                        if (docAux.getElementsByTagName("NombreA").item(x).getTextContent().equalsIgnoreCase(fase3)) {
+                            NodeList listaCanciones = (NodeList) xpath.evaluate("/Interprete/Album[NombreA='" + fase3 + "']/Cancion", docAux, XPathConstants.NODESET);
+                            listadoFinalCanciones.addAll(obtenerCancionesFaseFinalConsulta1(listaCanciones));
+                        }
+                    }
+                }
+            }
+        } else {
+
+            Document docAux = null;
+
+            for (int i = 0; i < listaDocuments.size(); i++) {
+                docAux = listaDocuments.get(i);
+                if (docAux.getElementsByTagName("Id").item(0).getTextContent().equals(fase2)) break;
+            }
+
+            if (fase3.equalsIgnoreCase("Todos")) {
+                NodeList listaCanciones = (NodeList) xpath.evaluate("/Interprete/Album/Cancion", docAux, XPathConstants.NODESET);
+                listadoFinalCanciones = obtenerCancionesFaseFinalConsulta1(listaCanciones);
+            } else {
+
+                for (int x = 0; x < docAux.getElementsByTagName("Album").getLength(); x++) {
+                    if (docAux.getElementsByTagName("NombreA").item(x).getTextContent().equalsIgnoreCase(fase3)) {
+                        NodeList listaCanciones = (NodeList) xpath.evaluate("/Interprete/Album[NombreA='" + fase3 + "']/Cancion", docAux, XPathConstants.NODESET);
+                        listadoFinalCanciones = obtenerCancionesFaseFinalConsulta1(listaCanciones);
+                    }
+                }
+            }
+        }
+        return listadoFinalCanciones;
+    }
+
+    //CONSULTA 2
+    public void consultaFase2Estilo(){
+
+        mapFase2.clear();
+        NodeList nodoAnhos = null;
+
+        for (int j=0; j<listaDocuments.size(); j++){
+
+            Document docAux = listaDocuments.get(j);
+            nodoAnhos = docAux.getElementsByTagName("Año");
+
+            for (int k=0; k<nodoAnhos.getLength(); k++){
+                if (!mapFase2.containsValue(docAux.getElementsByTagName("Año").item(k).getTextContent())) {
+                    mapFase2.put(Integer.parseInt(docAux.getElementsByTagName("Año").item(k).getTextContent()), docAux.getElementsByTagName("Año").item(k).getTextContent());
+                }
+            }
+        }
+
+    }
+
+    public TreeMap<String, ArrayList<String>> consultaFase3Estilo() throws XPathException {
+
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        TreeMap<String, ArrayList<String>> listaImprimir = new TreeMap<>();
+        String autor = "";
 
         if(fase2.equalsIgnoreCase("Todos")){
 
@@ -426,23 +683,26 @@ public class Sint153P2 extends HttpServlet {
                     autor = docAux.getElementsByTagName("NombreG").item(0).getTextContent();
                 }
 
-                salida.println("<b>Autor: "+ autor + "</b><br>");
-
                 for (int j=0; j<nodoAlbums.getLength(); j++){
-                    mapFase3.put(mapFase3.size()+1, nodoAlbums.item(j).getTextContent());
-                    salida.println("<input type='radio' name='album2' value='" + nodoAlbums.item(j).getTextContent() + "#" + docAux.getElementsByTagName("Id").item(0).getTextContent() +"' checked> " + nodoAlbums.item(j).getTextContent() + ".<br>");
-                }
 
-                salida.println("<br>");
+                    if(!listaImprimir.containsKey(autor)){
+                        ArrayList<String> arrayAux = new ArrayList<String>();
+                        arrayAux.add(nodoAlbums.item(j).getTextContent() + "#" + docAux.getElementsByTagName("Id").item(0).getTextContent());
+
+                        listaImprimir.put(autor, arrayAux);
+                    } else {
+                        ArrayList<String> arrayAux = listaImprimir.get(autor);
+                        arrayAux.add(nodoAlbums.item(j).getTextContent() + "#" + docAux.getElementsByTagName("Id").item(0).getTextContent());
+                        listaImprimir.put(autor, arrayAux);
+                    }
+                }
             }
         } else {
 
             for (int i=0; i<listaDocuments.size(); i++) {
 
                 Document docAux = listaDocuments.get(i);
-
                 NodeList listaAlbums = (NodeList) xpath.evaluate("/Interprete/Album[Año='" + fase2 + "']", docAux, XPathConstants.NODESET);
-
                 autor = "";
 
                 if (docAux.getElementsByTagName("NombreC").item(0) != null){
@@ -450,8 +710,6 @@ public class Sint153P2 extends HttpServlet {
                 } else {
                     autor = docAux.getElementsByTagName("NombreG").item(0).getTextContent();
                 }
-
-                salida.println("<b>Autor: "+ autor + "</b><br>");
 
                 for (int j = 0; j < listaAlbums.getLength(); j++) {
 
@@ -463,35 +721,30 @@ public class Sint153P2 extends HttpServlet {
 
                         if (Album.equals("NombreA")){
                             nombreAlbum = nodoAlbumHijos.item(k).getTextContent().trim().replaceAll("\n","");
-                            mapFase3.put(mapFase3.size()+1, nombreAlbum);
-                            salida.println("<input type='radio' name='album2' value='" + nombreAlbum + "#" + docAux.getElementsByTagName("Id").item(0).getTextContent() + "' checked> " + nombreAlbum + ".<br>");
+                            if(!listaImprimir.containsKey(autor)){
+                                ArrayList<String> arrayAux = new ArrayList<String>();
+                                arrayAux.add((nombreAlbum) + "#" + docAux.getElementsByTagName("Id").item(0).getTextContent());
+
+                                listaImprimir.put(autor, arrayAux);
+                            } else {
+                                ArrayList<String> arrayAux = listaImprimir.get(autor);
+                                arrayAux.add((nombreAlbum) + "#" + docAux.getElementsByTagName("Id").item(0).getTextContent());
+                                listaImprimir.put(autor, arrayAux);
+                            }
+
                         }
                     }
                 }
-                salida.println("<br>");
             }
         }
 
-        salida.println("<input type='radio' name='album2' value='Todos#Todos' checked> Todos.<br>");
-        salida.println("<input type='submit' value='Enviar'>");
-        salida.println("<input type='hidden' name='fase' value='222'>");
-        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
-        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=221'>");
-        salida.println("</form>");
-        salida.println("</div></div>");
-        salida.println("</body>");
-        salida.println("</html>");
+        return listaImprimir;
     }
 
-    public void fase4Estilo(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException, XPathExpressionException {
+    public void consultaFase4Estilo() throws XPathException {
 
         mapFase4.clear();
         XPath xpath = XPathFactory.newInstance().newXPath();
-
-        salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h1>");
-        salida.println("<h2>Fase 1: " + fase1 + " || Fase 2: " + fase2 + " || Fase 3: " + fase3 + "</h2>");
-        salida.println("<h2>Por favor, seleccione un estilo:</h2>");
-        salida.println("<form method=GET action='?fase=223'>");
 
         for (int i = 0; i < listaDocuments.size(); i++){
             NodeList listaCancionesEstilo = null;
@@ -529,101 +782,12 @@ public class Sint153P2 extends HttpServlet {
             }
         }
 
-        Iterator iterador = mapFase4.keySet().iterator();
-        while (iterador.hasNext()){
-            Integer key = (Integer) iterador.next();
-            String estilo = mapFase4.get(key);
-
-            salida.println("<input type='radio' name='estilo' value='"+estilo+"' checked> "+estilo+".<br>");
-        }
-
-        salida.println("<input type='radio' name='estilo' value='Todos' checked> Todos.<br>");
-        salida.println("<input type='submit' value='Enviar'>");
-        salida.println("<input type='hidden' name='fase' value='223'>");
-        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
-        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=222'>");
-        salida.println("</form>");
-        salida.println("</div></div>");
-        salida.println("</body>");
-        salida.println("</html>");
     }
 
-    public void faseFinalAlbum(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException, XPathExpressionException {
-
-        XPath xpath = XPathFactory.newInstance().newXPath();
-
-        salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira) (FINAL ÁLBUM).</h1>");
-        salida.println("<form method=GET action='?fase=41'>");
-        salida.println("<h3>Su selección ha sido:</h3>");
-        salida.println("<h4>Fase 1: " + fase1 + " || Fase 2: " + fase2 + " || Fase 3: " + fase3);
-        salida.println("<h3>El resultado de su consulta es el siguiente:</h3>");
-        salida.println("<h4>");
-        salida.println("<ul>");
-
-        if (fase2.equalsIgnoreCase("Todos")) {
-
-            Document docAux = null;
-
-            for (int m = 0; m < listaDocuments.size(); m++) {
-                docAux = listaDocuments.get(m);
-
-                if (fase3.equalsIgnoreCase("Todos")) {
-                    NodeList listaCanciones = (NodeList) xpath.evaluate("/Interprete/Album/Cancion", docAux, XPathConstants.NODESET);
-                    imprimirCanciones(listaCanciones, salida);
-                } else {
-                    for (int x = 0; x < docAux.getElementsByTagName("Album").getLength(); x++) {
-                        if (docAux.getElementsByTagName("NombreA").item(x).getTextContent().equalsIgnoreCase(fase3)) {
-                            NodeList listaCanciones = (NodeList) xpath.evaluate("/Interprete/Album[NombreA='" + fase3 + "']/Cancion", docAux, XPathConstants.NODESET);
-                            imprimirCanciones(listaCanciones, salida);
-                        }
-                    }
-                }
-            }
-        } else {
-
-            Document docAux = null;
-
-            for (int i = 0; i < listaDocuments.size(); i++) {
-                docAux = listaDocuments.get(i);
-                if (docAux.getElementsByTagName("Id").item(0).getTextContent().equals(fase2)) break;
-            }
-
-            if (fase3.equalsIgnoreCase("Todos")) {
-                NodeList listaCanciones = (NodeList) xpath.evaluate("/Interprete/Album/Cancion", docAux, XPathConstants.NODESET);
-                imprimirCanciones(listaCanciones, salida);
-            } else {
-
-                for (int x = 0; x < docAux.getElementsByTagName("Album").getLength(); x++) {
-                    if (docAux.getElementsByTagName("NombreA").item(x).getTextContent().equalsIgnoreCase(fase3)) {
-                        NodeList listaCanciones = (NodeList) xpath.evaluate("/Interprete/Album[NombreA='" + fase3 + "']/Cancion", docAux, XPathConstants.NODESET);
-                        imprimirCanciones(listaCanciones, salida);
-                    }
-                }
-            }
-        }
-
-        salida.println("</ul>");
-        salida.println("</h4>");
-        salida.println("<input type='hidden' name='fase' value='41'>");
-        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
-        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=212'>");
-        salida.println("</form>");
-        salida.println("</div></div>");
-        salida.println("</body>");
-        salida.println("</html>");
-    }
-
-    public void faseFinalEstilo(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException, XPathExpressionException {
+    public int consultaFaseFinalEstilo() throws XPathException {
 
         XPath xpath = XPathFactory.newInstance().newXPath();
         int totalCanciones = 0;
-
-        salida.println("<h1>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira) (FINAL ESTILO).</h1>");
-        salida.println("<form method=GET action='?fase=42'>");
-        salida.println("<h3>Su selección ha sido:</h3>");
-        salida.println("<h4>Fase 1: " + fase1 + " || Fase 2: " + fase2 + " || Fase 3: " + fase3 + " || Fase 4: " + fase4 + "</h4>");
-        salida.println("<h3>El resultado de su consulta es el siguiente:</h3>");
-        salida.println("<h4>");
 
         for (int i = 0; i < listaDocuments.size(); i++){
 
@@ -674,19 +838,11 @@ public class Sint153P2 extends HttpServlet {
                 totalCanciones = totalCanciones + listaCanciones.getLength();
             }
         }
-
-        salida.println("El número de canciones es: " + totalCanciones + ".<br>");
-        salida.println("</h4>");
-        salida.println("<input type='hidden' name='fase' value='42'>");
-        salida.println("<input type='submit' value='Inicio' onClick='form.fase.value=0'>");
-        salida.println("<input type='submit' value='Atrás' onClick='form.fase.value=223'>");
-        salida.println("</form>");
-        salida.println("</div></div>");
-        salida.println("</body>");
-        salida.println("</html>");
-
+        return totalCanciones;
     }
 
+
+    //MÉTODOS AUXILIARES
     public Document getDoc(int d) {
 
         Document document = null;
@@ -694,82 +850,67 @@ public class Sint153P2 extends HttpServlet {
         return document;
     }
 
-    public void leerXML(String XML) throws IOException {
+    public void leerXML(String XML) throws ServletException, IOException {
 
-        boolean error = false;
+        listaErrores.clear();
+        boolean yaExiste = false;
 
         //Empezamos obteniendo documentos
         dbf = DocumentBuilderFactory.newInstance();
         dbf.setValidating(true);
-        putXMLandDoc(XML, null);
 
         try {
             db = dbf.newDocumentBuilder();
             db.setErrorHandler(new ErrorHandler() {
                 public void warning(SAXParseException exception) throws SAXException {
-                    System.out.println("Warning en archivo XML: " + exception.toString());
+                    listaErrores.add("Warning: " + exception.toString());
                 }
 
                 public void error(SAXParseException exception) throws SAXException {
-                    System.out.println("Error en archivo XML: " + exception.toString());
+                    listaErrores.add("Error: " + exception.toString());
                 }
 
                 public void fatalError(SAXParseException exception) throws SAXException {
-                    System.out.println("Error grave en archivo XML: " + exception.toString());
+                    listaErrores.add("Fatal error: " + exception.toString());
                 }
             });
 
-            for (int z = 0; z < listadoXMLs.size(); z++) {
-
-                XML = listadoXMLs.get(z);
-                doc = db.parse(XML);
-
-                if (doc != null) {
-
-                    putXMLandDoc(XML, doc);
-                    NodeList nodosIML = doc.getElementsByTagName("IML");
-
-                    for (int j = 0; j < nodosIML.getLength(); j++) {
-                        putXMLandDoc("file:///D:/Users/Likytho/Google%20Drive/Teleco%20%28UVigo%29/3%C2%BA%20Grado%20%282015-2016%29/1%C2%BA%20Cuatrimestre/Servicios%20de%20Internet/Pr%C3%A1ctica/Pr%C3%A1ctica%202/P2/" + doc.getElementsByTagName("IML").item(j).getTextContent(), null);
-                    }
-                }
+            if(XML.startsWith("http://")){
+                doc=db.parse(new URL (XML).openStream(), "http://clave.det.uvigo.es:8080/~sint153/p2/");
+            }else{
+                doc=db.parse(new URL (URLInicial+XML).openStream(), "http://clave.det.uvigo.es:8080/~sint153/p2/");
             }
+
+            for (int i = 0; i<listaDocuments.size(); i++){
+
+                Document docAux = listaDocuments.get(i);
+
+                String IDdoc = doc.getElementsByTagName("Id").item(0).getTextContent();;
+                String IDdocAux = docAux.getElementsByTagName("Id").item(0).getTextContent();
+
+                if (IDdoc.equals(IDdocAux)) yaExiste = true;
+            }
+
+            if (!yaExiste) listaDocuments.add(doc);
+
+            NodeList nodosIML = doc.getElementsByTagName("IML");
+
+            for (int i = 0; i < nodosIML.getLength(); i++) {
+                String siguienteXML = nodosIML.item(i).getTextContent();
+                if(!siguienteXML.startsWith("http://")) siguienteXML = URLInicial+siguienteXML;
+
+                if ((!siguienteXML.equals("")) && (!listadoXMLs.contains(siguienteXML))) listadoXMLs.add(siguienteXML);
+            }
+
         } catch (ParserConfigurationException e) {
         } catch (SAXException e) {
         }
 
     }
 
-    public void putXMLandDoc(String XML, Document doc) {
+    public ArrayList<String> obtenerCancionesFaseFinalConsulta1 (NodeList listaCanciones) throws ServletException {
 
-        boolean yaExiste = false;
-
-        if (doc != null) {
-
-            if (!listadoXMLs.contains(doc.getDocumentURI())) {
-                listadoXMLs.add(doc.getDocumentURI());
-            }
-
-            for (int x = 0; x < listaDocuments.size(); x++) {
-                Document docAux = listaDocuments.get(x);
-                if (doc.getDocumentURI().equals(docAux.getDocumentURI())) yaExiste = true;
-            }
-
-            if (!yaExiste) listaDocuments.add(doc);
-
-        } else {
-            if (!listadoXMLs.contains(XML)) listadoXMLs.add(XML);
-        }
-
-        if (XML != null) {
-            if (!listadoXMLs.contains(XML)) {
-                listadoXMLs.add(XML);
-                if (doc != null) listaDocuments.add(doc);
-            }
-        }
-    }
-
-    public void imprimirCanciones (NodeList listaCanciones, ServletOutputStream salida) throws ServletException, IOException{
+        ArrayList<String> listaFinalConsulta1 = new ArrayList<String>();
 
         if (listaCanciones != null) {
             for (int i = 0; i < listaCanciones.getLength(); i++) {
@@ -798,9 +939,11 @@ public class Sint153P2 extends HttpServlet {
                     }
                 }
                 if (descripcion.equals("")) descripcion = "--";
-                salida.println("<li> " + nombreC + " (" + duracion + ", " + descripcion + ")<BR>");
+
+                listaFinalConsulta1.add(nombreC + " (" + duracion + ", " + descripcion + ")");
             }
         }
+        return listaFinalConsulta1;
     }
 
 }
