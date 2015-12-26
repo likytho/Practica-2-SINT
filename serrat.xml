@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Interprete SYSTEM "iml.dtd">
+<Interprete>    
+        <Nombre>
+                <NombreC>Serrat</NombreC>
+                <Id>9876543210</Id>
+        </Nombre>
+        <Nacionalidad>Italiano</Nacionalidad>
+        <Album tipo="recopilatorio" temas="1">
+                <NombreA>Album serrat 2</NombreA>
+                <Año>2000</Año>
+                <Cancion estilo="acosador">
+                        <NombreT>Remix sabina</NombreT>
+                        <Duracion>03:00</Duracion>
+                        <Version>
+                                <Nombre>
+                                        <NombreG>Estopa</NombreG>
+                                        <Id>0000000000</Id>
+                                </Nombre>
+                                <IML>estopa.xml</IML>
+                        </Version>
+                        <Version>
+                                <Nombre>
+                                        <NombreC>Vivaldi</NombreC>
+                                        <Id>0000000010</Id>
+                                </Nombre>
+                                <IML>vivaldi.xml</IML>
+                        </Version>
+                </Cancion>
+        </Album>
+</Interprete>

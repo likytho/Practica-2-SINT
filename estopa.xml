@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Interprete SYSTEM "iml.dtd">
+<Interprete>
+        <Nombre>
+                <NombreG>Estopa</NombreG>
+                <Id>0000000000</Id>
+        </Nombre>
+        <Nacionalidad>Española</Nacionalidad>
+        <Album tipo="recopilatorio" temas="1">
+                <NombreA>Album estopa 1</NombreA>
+                <Año>2001</Año>
+                <Cancion estilo="sin">
+			Esto funciona bien
+                        <NombreT>Repartiendo</NombreT>
+                        <Duracion>02:10</Duracion>
+		</Cancion>
+	</Album>
+	<Album tipo="mixto" temas="1">
+                <NombreA>Album éstopa 2</NombreA>
+                <Año>2002</Año>
+                <Cancion estilo="gososo">
+			esto
+                        <NombreT>estopiña</NombreT>
+			es
+                        <Duracion>03:00</Duracion>
+			una buena
+                        <Version>
+                                <Nombre>
+                                        <NombreC>Serrat</NombreC>
+                                        <Id>9876543210</Id>
+                                </Nombre>
+                                <IML>serrat.xml</IML>
+                        </Version>
+			cancion
+                </Cancion>
+        </Album>
+</Interprete>
+

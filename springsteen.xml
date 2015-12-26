@@ -1,0 +1,149 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+
+<!DOCTYPE Interprete SYSTEM "http://clave.det.uvigo.es:8080/~sint153/p2/iml.dtd" >
+
+<Interprete>
+ <Nombre>
+  <NombreC>Bruce Springsteen</NombreC>
+  <Id>sdfryghuie</Id>
+ </Nombre>
+ 
+ <Nacionalidad>Americano</Nacionalidad>
+ 
+ <Album tipo="nuevo">
+	<NombreA>Viva Springsteen, cojones</NombreA>
+	
+	<Año>2002</Año>
+	
+	<Cancion estilo="Rock">
+	
+	  <NombreT>Born to Run</NombreT>
+	  Tema principal del disco
+	  <Duracion>04:45</Duracion>
+	  
+	</Cancion>
+	 
+	<Cancion estilo="balada">
+	  <NombreT>Una Canción Para La Magdalena</NombreT>
+	  Sobre la Magdalena?
+	  <Duracion>04:15</Duracion>
+	  <Version>
+	     <Nombre>
+	       <NombreG>Juaquín</NombreG>
+	       <Id>0123456789</Id>
+	     </Nombre>
+	    <IML>prueba1.xml</IML>
+	  </Version>
+	</Cancion>
+	
+	<Cancion estilo="rock">
+	  Y alguno más
+	  <NombreT>Cadillac Ranch</NombreT>
+	  <Duracion>07:11</Duracion>
+	</Cancion>
+	
+	<Cancion estilo="rock">
+	  <NombreT>Dancing in the Dark</NombreT>
+	  <Duracion>04:37</Duracion>
+	  A Light in Darkness
+	</Cancion>
+ </Album>
+ 
+ <Album tipo="recopilatorio" temas="4">
+  <NombreA>Greatest Hits</NombreA>
+  <Año>1995</Año>
+  <Cancion estilo="Punk">
+    <NombreT>Murder Incorporated</NombreT>
+    <Duracion>05:02</Duracion>
+  </Cancion>
+   <Cancion estilo="Punk">
+    <NombreT>Secret Garden</NombreT>
+    <Duracion>04:37</Duracion>
+  </Cancion>
+  <Cancion estilo="pop">
+    Ou yeah!
+    <NombreT>Hungry Heart '95</NombreT>
+    <Duracion>03:56</Duracion>
+  </Cancion>
+   <Cancion estilo="pop">
+    <NombreT>The Ghost of Tom Joad</NombreT>
+    <Duracion>04:57</Duracion>
+    Que se mete en a cama a dormir
+  </Cancion>
+ </Album>
+ 
+ <Album tipo="recopilatorio">
+  <NombreA>Tracks</NombreA>
+  <Año>1998</Año>
+  <Cancion estilo="balada">
+    <NombreT>Fastest man alive</NombreT>
+    Al cielo
+    <Duracion>04:07</Duracion>
+  </Cancion>
+   <Cancion estilo="rock">
+    <NombreT>Eh, Flash</NombreT>
+    Thanks
+    <Duracion>03:40</Duracion>
+  </Cancion>
+  <Cancion estilo="balada">
+    I found it!
+    <NombreT>Hey, guys!</NombreT>
+    <Duracion>04:27</Duracion>
+  </Cancion>
+   <Cancion estilo="pop">
+    <NombreT>Juana la Loca</NombreT>
+    <Duracion>05:35</Duracion>
+    Te folla toda la boca
+  </Cancion>
+ </Album>
+ 
+ <Album tipo="mixto" temas="4">
+  <NombreA>Diario de un peaton</NombreA>
+  <Año>2003</Año>
+  <Cancion estilo="balada">
+    <NombreT>La ciudad más hermosa del mundo</NombreT>
+    <Duracion>04:56</Duracion>
+  </Cancion>
+   <Cancion estilo="rock">
+    <NombreT>Marco</NombreT>
+    Polo
+    <Duracion>03:51</Duracion>
+  </Cancion>
+  <Cancion estilo="pop">
+    A nosotros también
+    <NombreT>Me encantan las mujeres</NombreT>
+    <Duracion>04:30</Duracion>
+  </Cancion>
+   <Cancion estilo="rock">
+    <NombreT>Cuando me hablan de dinero</NombreT>
+    <Duracion>03:44</Duracion>
+    Saco el maletín
+  </Cancion>
+ </Album>
+ 
+ <Album tipo="nuevo">
+  <NombreA>Nos sobran las putillas</NombreA>
+  <Año>2000</Año>
+  <Cancion estilo="balada">
+    <NombreT>Que se come el yogurt</NombreT>
+    Y seguirá comiéndoselo
+    <Duracion>06:20</Duracion>
+  </Cancion>
+   <Cancion estilo="rock">
+    <NombreT>Contigo me como el mundo</NombreT>
+    Y sin ti no me como un rosco
+    <Duracion>05:05</Duracion>
+  </Cancion>
+  <Cancion estilo="balada">
+    Rajoy, le llamaban
+    <NombreT>¿Quién me ha robado la nómina?</NombreT>
+    <Duracion>06:54</Duracion>
+  </Cancion>
+   <Cancion estilo="pop">
+    <NombreT>Conductores suicidas</NombreT>
+    <Duracion>05:04</Duracion>
+    Ese es Pires, sisi
+  </Cancion>
+ </Album>
+ 
+</Interprete>

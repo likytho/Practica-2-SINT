@@ -1,0 +1,164 @@
+<?xml version='1.0' encoding='ISO-8859-1' standalone='no'?>
+
+<!DOCTYPE Interprete SYSTEM "p2/iml.dtd" >
+
+<Interprete>
+ <Nombre>
+  <NombreC>Joaquin Sabina</NombreC>
+  <Id>sdfryghuia</Id>
+ </Nombre>
+ 
+ <Nacionalidad>español</Nacionalidad>
+ 
+ <Album tipo="nuevo">
+	<NombreA>19 días y 500 noches</NombreA>
+	
+	<Año>2002</Año>
+	
+	<Cancion estilo="pop">
+	
+	  <NombreT>19 días y 500 noches</NombreT>
+	  Tema principal del disco
+	  <Duracion>04:45</Duracion>
+	  
+	</Cancion>
+	 
+	<Cancion estilo="balada">
+	  <NombreT>Una Canción Para La Magdalena</NombreT>
+	  Sobre la Magdalena?
+	  <Duracion>04:15</Duracion>
+	  <Version>
+	     <Nombre>
+	       <NombreG>Bruce Springsteen</NombreG>
+	       <Id>sdfryghuie</Id>
+	     </Nombre>
+	    <IML>springsteen.xml</IML>
+	  </Version>
+	</Cancion>
+	
+	<Cancion estilo="rock">
+	  Y alguno más
+	  <NombreT>A Mis Cuarenta y Diez</NombreT>
+	  <Duracion>07:11</Duracion>
+	</Cancion>
+	
+	<Cancion estilo="rock">
+	  <NombreT>Cerrado Por Derribo</NombreT>
+	  <Duracion>04:37</Duracion>
+	  Para siempre
+	</Cancion>
+ </Album>
+ 
+ <Album tipo="nuevo" temas="5">
+  <NombreA>Física y Química</NombreA>
+  <Año>2001</Año>
+  <Cancion estilo="balada">
+    <NombreT>Y nos dieron las diez</NombreT>
+    Y las once
+    <Duracion>05:02</Duracion>
+  </Cancion>
+   <Cancion estilo="rock">
+    <NombreT>La del pirata cojo</NombreT>
+    Con pata de palo
+    <Duracion>04:37</Duracion>
+  </Cancion>
+  <Cancion estilo="balada">
+    Esta es
+    <NombreT>La canción de las noches perdidas</NombreT>
+    <Duracion>03:56</Duracion>
+  </Cancion>
+   <Cancion estilo="balada">
+    <NombreT>Peor para el sol</NombreT>
+    <Duracion>04:57</Duracion>
+    Que se mete en a cama a dormir
+  </Cancion>
+   <Cancion estilo="pop">
+    <NombreT>Pastillas para no soñar</NombreT>
+    <Duracion>03:55</Duracion>
+    No hay
+   </Cancion>
+ </Album>
+ 
+ <Album tipo="recopilatorio">
+  <NombreA>Todos hablan de ti</NombreA>
+  <Año>2004</Año>
+  <Cancion estilo="balada">
+    <NombreT>Pongamos que hablo de Madrid</NombreT>
+    Al cielo
+    <Duracion>04:07</Duracion>
+  </Cancion>
+   <Cancion estilo="rock">
+    <NombreT>Eh, Sabina</NombreT>
+    Tú sí que sabes
+    <Duracion>03:40</Duracion>
+  </Cancion>
+  <Cancion estilo="balada">
+    Quiero mudarme hace años
+    <NombreT>Calle Melancolía</NombreT>
+    <Duracion>04:27</Duracion>
+  </Cancion>
+   <Cancion estilo="pop">
+    <NombreT>Juana la Loca</NombreT>
+    <Duracion>05:35</Duracion>
+    Y Felipe el Hermoso
+  </Cancion>
+ </Album>
+ 
+ <Album tipo="mixto" temas="4">
+  <NombreA>Diario de un peaton</NombreA>
+  <Año>2003</Año>
+  <Cancion estilo="balada">
+    <NombreT>La canción más hermosa del mundo</NombreT>
+    Con Pablo Milanés
+    <Duracion>04:56</Duracion>
+  </Cancion>
+   <Cancion estilo="rock">
+    <NombreT>Doble vida</NombreT>
+    Y triple a veces
+    <Duracion>03:51</Duracion>
+  </Cancion>
+  <Cancion estilo="pop">
+    Nosotros también
+    <NombreT>Semos diferentes</NombreT>
+    <Duracion>04:30</Duracion>
+  </Cancion>
+   <Cancion estilo="rock">
+    <NombreT>Cuando me hablan del destino</NombreT>
+    <Duracion>03:44</Duracion>
+    Me pongo furioso
+  </Cancion>
+ </Album>
+ 
+ <Album tipo="nuevo">
+  <NombreA>Nos sobran los motivos</NombreA>
+  <Año>2000</Año>
+  <Cancion estilo="balada">
+    <NombreT>Que se llama Soledad</NombreT>
+    Y seguirá llamándose
+    <Duracion>06:20</Duracion>
+    <Version>
+      <Nombre>
+         <NombreG>Siniestro Total</NombreG>
+         <Id>sdfryghuii</Id>
+      </Nombre>
+      <IML>siniestro.xml</IML>
+    </Version>
+  </Cancion>
+   <Cancion estilo="rock">
+    <NombreT>Contigo</NombreT>
+    Y sin ti
+    <Duracion>05:05</Duracion>
+  </Cancion>
+  <Cancion estilo="balada">
+    Así estoy yo sin ti
+    <NombreT>¿Quién me ha robado el mes de abril?</NombreT>
+    <Duracion>06:54</Duracion>
+  </Cancion>
+   <Cancion estilo="pop">
+    <NombreT>Conductores suicidas</NombreT>
+    <Duracion>05:04</Duracion>
+    Todos somos un poco así
+  </Cancion>
+ </Album>
+ 
+</Interprete>

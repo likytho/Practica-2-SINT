@@ -1,0 +1,24 @@
+th, td{
+	text-align: left;
+}
+
+
+
+#wrapper {
+	width: 100%;
+	text-align: center;
+	margin-top: 10px;
+}
+
+#container {
+	width: 750px;
+	margin-left:auto;
+	margin-right:auto;
+	background: rgba(202,255,138,1);
+	background: -moz-linear-gradient(left, rgba(202,255,138,1) 0%, rgba(137,255,87,0.6) 100%);
+	background: -webkit-gradient(left top, right top, color-stop(0%, rgba(202,255,138,1)), color-stop(100%, rgba(137,255,87,0.6)));
+	background: -webkit-linear-gradient(left, rgba(202,255,138,1) 0%, rgba(137,255,87,0.6) 100%);
+	background: -o-linear-gradient(left, rgba(202,255,138,1) 0%, rgba(137,255,87,0.6) 100%);
+	background: -ms-linear-gradient(left, rgba(202,255,138,1) 0%, rgba(137,255,87,0.6) 100%);
+	background: linear-gradient(to right, rgba(202,255,138,1) 0%, rgba(137,255,87,0.6) 100%);
+} 

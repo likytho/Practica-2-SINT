@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE Interprete SYSTEM "http://clave.det.uvigo.es:8080/~sint153/p2/iml.dtd" >
+
+<Interprete>
+	<Nombre>
+		<NombreG>The Queen</NombreG>
+		<Id>TQEN</Id>
+	</Nombre>
+
+	<Nacionalidad>Italiano</Nacionalidad>
+
+	<Album tipo="nuevo" temas="3">
+
+		<NombreA>Sheeer Heart Attack</NombreA>
+		<Año>1974</Año>
+
+		<Cancion estilo="Heavy Metal">
+			<NombreT>Father to son</NombreT>
+			<Duración>03:51</Duración>
+		</Cancion>
+		
+		<Cancion estilo="Heavy Metal">
+			<NombreT>Nevermore</NombreT>
+			<Duración>04:23</Duración>
+				<Version>
+					<Nombre>
+						<NombreG>John Lennon</NombreG>
+						<Id>JHNLNN</Id>
+					</Nombre>
+					<IML></IML>
+				</Version>
+		</Cancion>
+
+		<Cancion estilo="Pop">
+			<NombreT>Funny How Love Is</NombreT>
+			<Duración>02:59</Duración>
+				<Version>
+					<Nombre>
+						<NombreG>Joaquim Sabina</NombreG>
+						<Id>JSAB</Id>
+					</Nombre>
+					<IML></IML>
+				</Version>
+		</Cancion>
+	</Album>
+</Interprete>

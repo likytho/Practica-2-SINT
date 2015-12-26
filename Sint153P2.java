@@ -1,8 +1,16 @@
+/*
+ * Práctica 2 SINT
+ *
+ * Pedro Tubío Figueira
+ * SINT 153
+ *
+ */
+
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -13,14 +21,20 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
-import java.net.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class Sint153P2 extends HttpServlet {
 
-    public final String URLInicial = "http://clave.det.uvigo.es:8080/~sint153/p2/";
-    ArrayList<String> listaErrores = new ArrayList<>();
+    public final String URLInicial = "http://clave.det.uvigo.es:8080/~sintprof/15-16/p2/";
+    ArrayList<String> listaErrores = new ArrayList<String>();
+
+    boolean error = false;
 
     String fase1 = "";
 
@@ -36,7 +50,7 @@ public class Sint153P2 extends HttpServlet {
     Map<Integer, ArrayList<String>> mapFase3Consulta1Aux = new TreeMap<Integer, ArrayList<String>>();
 
     String fase4 = "";
-    Map<Integer, String> mapFase4 = new TreeMap<Integer, String>();
+    Map<String, Integer> mapFase4 = new TreeMap<String, Integer>();
 
     ArrayList<Document> listaDocuments = new ArrayList<Document>();
     ArrayList<String> listadoXMLs = new ArrayList<String>();
@@ -45,9 +59,11 @@ public class Sint153P2 extends HttpServlet {
     DocumentBuilder db = null;
     Document doc = null;
 
+    String XMLAux = "";
+
     //MÉTODO DE INICIALIZACIÓN
     public void init(ServletOutputStream salida) throws ServletException, IOException {
-        listadoXMLs.add("http://clave.det.uvigo.es:8080/~sint153/p2/springsteen.xml");
+        listadoXMLs.add("http://clave.det.uvigo.es:8080/~sintprof/15-16/p2/sabina.xml");
 
         for (int w = 0; w < listadoXMLs.size(); w++){
             leerXML(listadoXMLs.get(w));
@@ -97,17 +113,21 @@ public class Sint153P2 extends HttpServlet {
             salida.println("<h5>Servicio de consulta de información musical (sint153 - Pedro Tubío Figueira).</h5>");
             salida.println("</div></div>");
 
+
+            salida.println("<div id=\"wrapper\">");
+            salida.println("<div id=\"container\">");
+            salida.println("<h3>Notificaciones:</h3>");
+            //salida.println("Tamaño lista errores: " + listaErrores.size());
             if(!listaErrores.isEmpty()){
-                salida.println("<div id=\"wrapper\">");
-                salida.println("<div id=\"container\">");
-                salida.println("<h3>Notificaciones:</h3>");
 
                 for(int u=0; u<listaErrores.size(); u++){
-                    salida.println("<font color=\"red\"> " + listaErrores.get(u) + "</font>");
+                    salida.println("<font color=\"red\"> " + listaErrores.get(u) + "</font><br>");
                 }
 
-                salida.println("</div></div>");
+                listaErrores.clear();
             }
+
+            salida.println("</div></div>");
 
             salida.println("</body>");
             salida.println("</html>");
@@ -117,7 +137,9 @@ public class Sint153P2 extends HttpServlet {
             if (req.getParameter("fase").equals("1")) {
                 if (req.getParameter("consulta").equals("1")) {
                     fase1 = "Lista de canciones de un álbum";
-                    fase2Album(req, res, salida);
+                    try {
+                        fase2Album(req, res, salida);
+                    } catch (XPathException e) {}
                 }
                 if (req.getParameter("consulta").equals("2")) {
                     fase1 = "Número de canciones de un estilo";
@@ -129,7 +151,9 @@ public class Sint153P2 extends HttpServlet {
             if (req.getParameter("fase").equals("211")) {
                 if (req.getParameter("interprete") == null) {
                     fase2 = "";
-                    fase2Album(req, res, salida);
+                    try {
+                        fase2Album(req, res, salida);
+                    } catch (XPathException e) {}
                 } else {
                     String fase2Aux = req.getParameter("interprete");
                     String [] fase2AuxAux = fase2Aux.split("#");
@@ -202,7 +226,7 @@ public class Sint153P2 extends HttpServlet {
 
 
     //PRIMERA CONSULTA
-    public void fase2Album(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException {
+    public void fase2Album(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException, XPathException {
 
         salida.println("<h1>SERVICIO DE CONSULTA DE INFORMACIÓN MUSICAL</h1>");
         salida.println("<h2>Fase 1: " + fase1 + "</h2>");
@@ -243,7 +267,7 @@ public class Sint153P2 extends HttpServlet {
     public void fase3Album(HttpServletRequest req, HttpServletResponse res, ServletOutputStream salida) throws ServletException, IOException {
 
         salida.println("<h1>SERVICIO DE CONSULTA DE INFORMACIÓN MUSICAL</h1>");
-        salida.println("<h2>Fase 1: " + fase1 + " || Fase 2: " + fase2 + "</h2>");
+        salida.println("<h2>Fase 1: " + fase1 + " || Fase 2: " + fase2Autor + "</h2>");
         salida.println("<h2>Por favor, seleccione un álbum:</h2>");
         salida.println("<form method=GET action='?fase=212'>");
 
@@ -417,10 +441,8 @@ public class Sint153P2 extends HttpServlet {
         if(!mapFase4.isEmpty()){
             Iterator iterador = mapFase4.keySet().iterator();
             while (iterador.hasNext()){
-                Integer key = (Integer) iterador.next();
-                String estilo = mapFase4.get(key);
-
-                salida.println("<input type='radio' name='estilo' value='"+estilo+"' checked> "+estilo+".<br>");
+                String key = (String) iterador.next();
+                salida.println("<input type='radio' name='estilo' value='"+key+"' checked> "+key+".<br>");
             }
 
             salida.println("<input type='radio' name='estilo' value='Todos' checked> Todos.<br>");
@@ -469,24 +491,32 @@ public class Sint153P2 extends HttpServlet {
 
     //MÉTODOS BÚSQUEDA FASES
     //CONSULTA 1
-    public void consultaFase2Album(){
+    public void consultaFase2Album() throws XPathException {
         mapFase2Consulta1.clear();
         mapFase2Consulta1ID.clear();
 
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        String nombre = "";
+
         for (int i = 0; i < listaDocuments.size(); i++) {
             Document docAux = getDoc(i);
+            NodeList identificacionAutor = (NodeList) xpath.evaluate("/Interprete/Nombre", docAux, XPathConstants.NODESET);
 
-            if (docAux.getElementsByTagName("NombreC") != null) {
-                String NombreC = docAux.getElementsByTagName("NombreC").item(0).getTextContent();
-                mapFase2Consulta1.put(NombreC, NombreC);
-                mapFase2Consulta1ID.put(NombreC, docAux.getElementsByTagName("Id").item(0).getTextContent());
-            } else {
-                String NombreG = docAux.getElementsByTagName("NombreG").item(0).getTextContent();
-                mapFase2Consulta1.put(NombreG, NombreG);
-                mapFase2Consulta1ID.put(NombreG, docAux.getElementsByTagName("Id").item(0).getTextContent());
+            if (identificacionAutor.getLength() != 0){
+
+                NodeList nodoAux = identificacionAutor.item(0).getChildNodes();
+
+                for (int y=0; y<nodoAux.getLength(); y++){
+                    String campo = nodoAux.item(y).getNodeName();
+
+                    if((campo.equalsIgnoreCase("NombreG")) || (campo.equalsIgnoreCase("NombreC"))){
+                        nombre = nodoAux.item(y).getTextContent().trim();
+                    }
+                }
             }
+            mapFase2Consulta1.put(nombre, nombre);
+            mapFase2Consulta1ID.put(nombre, docAux.getElementsByTagName("Id").item(0).getTextContent());
         }
-
     }
 
     public void consultaFase3Album() throws XPathException {
@@ -589,7 +619,6 @@ public class Sint153P2 extends HttpServlet {
                         }
                     }
                 }
-                //break;
             }
         }
     }
@@ -666,7 +695,7 @@ public class Sint153P2 extends HttpServlet {
     public TreeMap<String, ArrayList<String>> consultaFase3Estilo() throws XPathException {
 
         XPath xpath = XPathFactory.newInstance().newXPath();
-        TreeMap<String, ArrayList<String>> listaImprimir = new TreeMap<>();
+        TreeMap<String, ArrayList<String>> listaImprimir = new TreeMap<String, ArrayList<String>>();
         String autor = "";
 
         if(fase2.equalsIgnoreCase("Todos")){
@@ -677,10 +706,19 @@ public class Sint153P2 extends HttpServlet {
                 NodeList nodoAlbums = docAux.getElementsByTagName("NombreA");
                 autor = "";
 
-                if (docAux.getElementsByTagName("NombreC").item(0) != null){
-                    autor = docAux.getElementsByTagName("NombreC").item(0).getTextContent();
-                } else {
-                    autor = docAux.getElementsByTagName("NombreG").item(0).getTextContent();
+                NodeList identificacionAutor = (NodeList) xpath.evaluate("/Interprete/Nombre", docAux, XPathConstants.NODESET);
+
+                if (identificacionAutor.getLength() != 0){
+
+                    NodeList nodoAux = identificacionAutor.item(0).getChildNodes();
+
+                    for (int y=0; y<nodoAux.getLength(); y++){
+                        String campo = nodoAux.item(y).getNodeName();
+
+                        if((campo.equalsIgnoreCase("NombreG")) || (campo.equalsIgnoreCase("NombreC"))){
+                            autor = nodoAux.item(y).getTextContent().trim();
+                        }
+                    }
                 }
 
                 for (int j=0; j<nodoAlbums.getLength(); j++){
@@ -705,10 +743,19 @@ public class Sint153P2 extends HttpServlet {
                 NodeList listaAlbums = (NodeList) xpath.evaluate("/Interprete/Album[Año='" + fase2 + "']", docAux, XPathConstants.NODESET);
                 autor = "";
 
-                if (docAux.getElementsByTagName("NombreC").item(0) != null){
-                    autor = docAux.getElementsByTagName("NombreC").item(0).getTextContent();
-                } else {
-                    autor = docAux.getElementsByTagName("NombreG").item(0).getTextContent();
+                NodeList identificacionAutor = (NodeList) xpath.evaluate("/Interprete/Nombre", docAux, XPathConstants.NODESET);
+
+                if (identificacionAutor.getLength() != 0){
+
+                    NodeList nodoAux = identificacionAutor.item(0).getChildNodes();
+
+                    for (int y=0; y<nodoAux.getLength(); y++){
+                        String campo = nodoAux.item(y).getNodeName();
+
+                        if((campo.equalsIgnoreCase("NombreG")) || (campo.equalsIgnoreCase("NombreC"))){
+                            autor = nodoAux.item(y).getTextContent().trim();
+                        }
+                    }
                 }
 
                 for (int j = 0; j < listaAlbums.getLength(); j++) {
@@ -777,7 +824,7 @@ public class Sint153P2 extends HttpServlet {
 
             if (listaCancionesEstilo != null){
                 for (int j=0; j<listaCancionesEstilo.getLength(); j++){
-                    if (!mapFase4.containsValue(listaCancionesEstilo.item(j).getTextContent())) mapFase4.put(mapFase4.size()+1, listaCancionesEstilo.item(j).getTextContent());
+                    if (!mapFase4.containsKey(listaCancionesEstilo.item(j).getTextContent())) mapFase4.put(listaCancionesEstilo.item(j).getTextContent(), mapFase4.size()+1);
                 }
             }
         }
@@ -850,10 +897,11 @@ public class Sint153P2 extends HttpServlet {
         return document;
     }
 
-    public void leerXML(String XML) throws ServletException, IOException {
+    public void leerXML(String XML) throws ServletException, IOException, FileNotFoundException {
 
-        listaErrores.clear();
+        //listaErrores.clear();
         boolean yaExiste = false;
+        XMLAux = XML;
 
         //Empezamos obteniendo documentos
         dbf = DocumentBuilderFactory.newInstance();
@@ -861,51 +909,62 @@ public class Sint153P2 extends HttpServlet {
 
         try {
             db = dbf.newDocumentBuilder();
-            db.setErrorHandler(new ErrorHandler() {
-                public void warning(SAXParseException exception) throws SAXException {
-                    listaErrores.add("Warning: " + exception.toString());
+            db.setErrorHandler(new XML_DTD_ErrorHandler());
+
+            boolean continuar = true;
+
+            try{
+
+                if(XML.startsWith("http://")){
+                    doc=db.parse(new URL (XML).openStream(), "http://localhost:8153/sint153/");
+                }else{
+                    doc=db.parse(new URL (URLInicial+XML).openStream(), "http://localhost:8153/sint153/");
                 }
 
-                public void error(SAXParseException exception) throws SAXException {
-                    listaErrores.add("Error: " + exception.toString());
+            }catch (FileNotFoundException e) {continuar = false;}
+
+            if (continuar){
+
+                for (int i = 0; i<listaDocuments.size(); i++){
+
+                    Document docAux = listaDocuments.get(i);
+
+                    String IDdoc = doc.getElementsByTagName("Id").item(0).getTextContent();;
+                    String IDdocAux = docAux.getElementsByTagName("Id").item(0).getTextContent();
+
+                    if (IDdoc.equals(IDdocAux)) yaExiste = true;
                 }
 
-                public void fatalError(SAXParseException exception) throws SAXException {
-                    listaErrores.add("Fatal error: " + exception.toString());
+                if (!yaExiste) listaDocuments.add(doc);
+
+                NodeList nodosIML = doc.getElementsByTagName("IML");
+
+                for (int i = 0; i < nodosIML.getLength(); i++) {
+                    String siguienteXML = nodosIML.item(i).getTextContent();
+                    if(!siguienteXML.startsWith("http://")) siguienteXML = URLInicial+siguienteXML;
+
+                    if ((!siguienteXML.equals("")) && (!listadoXMLs.contains(siguienteXML))) listadoXMLs.add(siguienteXML);
                 }
-            });
-
-            if(XML.startsWith("http://")){
-                doc=db.parse(new URL (XML).openStream(), "http://clave.det.uvigo.es:8080/~sint153/p2/");
-            }else{
-                doc=db.parse(new URL (URLInicial+XML).openStream(), "http://clave.det.uvigo.es:8080/~sint153/p2/");
-            }
-
-            for (int i = 0; i<listaDocuments.size(); i++){
-
-                Document docAux = listaDocuments.get(i);
-
-                String IDdoc = doc.getElementsByTagName("Id").item(0).getTextContent();;
-                String IDdocAux = docAux.getElementsByTagName("Id").item(0).getTextContent();
-
-                if (IDdoc.equals(IDdocAux)) yaExiste = true;
-            }
-
-            if (!yaExiste) listaDocuments.add(doc);
-
-            NodeList nodosIML = doc.getElementsByTagName("IML");
-
-            for (int i = 0; i < nodosIML.getLength(); i++) {
-                String siguienteXML = nodosIML.item(i).getTextContent();
-                if(!siguienteXML.startsWith("http://")) siguienteXML = URLInicial+siguienteXML;
-
-                if ((!siguienteXML.equals("")) && (!listadoXMLs.contains(siguienteXML))) listadoXMLs.add(siguienteXML);
             }
 
         } catch (ParserConfigurationException e) {
         } catch (SAXException e) {
-        }
 
+            if(XML_DTD_ErrorHandler.hasError() || XML_DTD_ErrorHandler.hasWarning() || XML_DTD_ErrorHandler.hasFatalError()){
+
+                listaErrores.add("<b>Archivo: " + XMLAux + "</b><br>" + XML_DTD_ErrorHandler.getMessage() + "<br><br>" );
+                XML_DTD_ErrorHandler.clear();
+                return;
+
+
+            } else {
+
+                listaErrores.add("<b>Archivo: " +XMLAux + "</b><br>" + "ERROR: " + e.toString()  + "<br><br>");
+                return;
+
+
+            }
+        }
     }
 
     public ArrayList<String> obtenerCancionesFaseFinalConsulta1 (NodeList listaCanciones) throws ServletException {
@@ -946,4 +1005,50 @@ public class Sint153P2 extends HttpServlet {
         return listaFinalConsulta1;
     }
 
+}
+
+class XML_DTD_ErrorHandler extends DefaultHandler {
+    public static boolean error;
+    public static boolean warning;
+    public static boolean fatalerror;
+    public static String message;
+    public XML_DTD_ErrorHandler() {
+        error = false;
+        warning = false;
+        fatalerror = false;
+        message = null;
+    }
+    public void warning(SAXParseException spe) throws SAXException {
+        warning = true;
+        message = "Warning: " + spe.toString();
+        throw new SAXException();
+    }
+    public void error(SAXParseException spe) throws SAXException {
+        error = true;
+        message = "Error: " + spe.toString();
+        throw new SAXException();
+    }
+    public void fatalerror(SAXParseException spe) throws SAXException {
+        fatalerror = true;
+        message = "Fatal Error: " + spe.toString();
+        throw new SAXException();
+    }
+    public static boolean hasWarning() {
+        return warning;
+    }
+    public static boolean hasError() {
+        return error;
+    }
+    public static boolean hasFatalError() {
+        return fatalerror;
+    }
+    public static String getMessage() {
+        return message;
+    }
+    public static void clear() {
+        warning = false;
+        error = false;
+        fatalerror = false;
+        message = null;
+    }
 }

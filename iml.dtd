@@ -1,0 +1,17 @@
+<!ELEMENT Interprete (Nombre, Nacionalidad, Album*)>
+<!ELEMENT Nombre ((NombreC | NombreG), Id)>
+<!ELEMENT NombreC (#PCDATA)>
+<!ELEMENT NombreG (#PCDATA)>
+<!ELEMENT Id (#PCDATA)>
+<!ELEMENT Nacionalidad (#PCDATA)>
+<!ELEMENT Album (NombreA, Año, Cancion+)>
+<!ELEMENT NombreA (#PCDATA)>
+<!ELEMENT Año (#PCDATA)>
+<!ATTLIST Album tipo (nuevo|recopilatorio|mixto) #REQUIRED>
+<!ATTLIST Album temas (1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30) #IMPLIED>
+<!ELEMENT Cancion (#PCDATA | NombreT | Duracion | Version)*>
+<!ELEMENT NombreT (#PCDATA)>
+<!ELEMENT Duracion (#PCDATA)>
+<!ATTLIST Cancion estilo CDATA #REQUIRED>
+<!ELEMENT Version (Nombre, IML)>
+<!ELEMENT IML (#PCDATA)>

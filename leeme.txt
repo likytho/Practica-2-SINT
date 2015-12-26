@@ -1,0 +1,19 @@
+Práctica 2 definitiva
+
+	Sint153
+	Pedro Tubío Figueira
+
+Los archivos XML utilizados son los que se incluyen en el directorio correspondiente. En caso de que un fichero no exista, se ha añadido la comprobación correspondiente para FileNotFoundException.
+
+Esta segunda reentrega se hace para corregir los errores dictados tras la primera "inspección" de la pŕactica: a saber
+
+	* Error leve: no se informa de los ficheros erróneos
+	* Error grave: no muestra mina en la consulta 1
+	* Error grave: en la consulta 2 no suma los de mina
+	* Error grave: en la consulta 2, al seleccionar 'todos', atribuye a aute canciones de siniestro
+
+El error leve, en realidad, no existía. La pantalla de notificaciones sólo se mostraba si había alguna notificación que mostrar, el error de verdad venía por la propia naturaleza de la parte del código que gestionaba los errores. Así pues, la modificación que he realizado ha consistido en crear el ErrorHandler en una clase independiente y gestionar correctamente los errores añadiendo al catch correspondiente la casuística que se escapaba en la anterior versión.
+
+Con esta modificación se han arreglado los 3 primeros errores mencionados anteriormente, ya que fue una casuística que me olvidé de comprobar.
+
+Con respecto al último error grave, fue un fallo de última hora. Como podéis comprobar, en el código de la primera consulta al mostrar los intérpretes, esta parte se realiza de forma correcta a través de una expresión de XPath, pero fue una corrección que realicé haciendo pruebas, la cual que no me di cuenta de corregir en las demás partes del código (2 más, si mal no recuerdo). Era hacer un copy-paste, nada más, en los demás casos en los que es necesario obtener esta variable. 

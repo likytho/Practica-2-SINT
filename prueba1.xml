@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Interprete SYSTEM "iml.dtd">
+<Interprete>
+	<Nombre>
+		<NombreC>Juaquín</NombreC>
+		<Id>0123456789</Id>
+	</Nombre>
+	<Nacionalidad>Español</Nacionalidad>
+	<Album tipo="mixto" temas="1">
+		<NombreA>Album sabina 1</NombreA>
+		<Año>2002</Año>
+		<Cancion estilo="gososo">
+			<NombreT>Gosadera</NombreT>
+			<Duracion>03:34</Duracion>
+			<Version>
+				<Nombre>
+					<NombreC>Serrat</NombreC>
+					<Id>9876543210</Id>
+				</Nombre>
+				<IML>serrat.xml</IML>
+			</Version>
+			<Version>
+				<Nombre>
+					<NombreG>Estopa</NombreG>
+					<Id>0000000000</Id>
+				</Nombre>
+				<IML>estopa.xml</IML>
+			</Version>
+		</Cancion>	
+	</Album>
+</Interprete>
